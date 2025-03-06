@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace UnityLauncherPro
@@ -208,6 +209,15 @@ namespace UnityLauncherPro
             // bubblegum(TM) solution, fill available platforms for this unity version, for this project
             p.TargetPlatforms = Tools.GetPlatformsForUnityVersion(projectVersion);
             p.folderExists = folderExists;
+
+            var editorPathCfg = Path.Combine(projectPath, "LastLaunchEditor.txt");
+            if (File.Exists(editorPathCfg))
+            {
+                var editorPath = File.ReadAllText(editorPathCfg);
+                p.Editor = editorPath;
+            }
+            p.Editors = MainWindow.unityInstallationsSource
+                .Select(x => $"{x.Version}({x.Path})").ToArray();
 
             if (showSRP == true) p.SRP = Tools.GetSRP(projectPath);
 

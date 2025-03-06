@@ -208,6 +208,19 @@
                                     </DataTemplate>
                                 </DataGridTextColumn.HeaderTemplate>
                             </DataGridTextColumn>
+                            <DataGridTemplateColumn Header="Editor" Width="90">
+                                <DataGridTemplateColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="Editor" IsHitTestVisible="False"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.HeaderTemplate>
+                                <DataGridTemplateColumn.CellTemplate >
+                                    <DataTemplate >
+                                        <!--<ComboBox Style="{StaticResource DataGridComboBox}" ItemsSource="{Binding TargetPlatforms}" SelectedValue="{Binding TargetPlatform}" x:Name="cmbPlatformSelection" OverridesDefaultStyle="True" VerticalAlignment="Center" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" IsEnabled="{Binding ElementName=chkEnablePlatformSelection, Path=IsChecked}"   Height="18"  Foreground="{DynamicResource ThemeButtonForeground}" DropDownClosed="CmbPlatformSelection_DropDownClosed" MinWidth="80"/>-->
+                                        <ComboBox Style="{StaticResource DataGridComboBox}" ItemsSource="{Binding Editors}" SelectedValue="{Binding Editor}" x:Name="cmbPlatformSelection" OverridesDefaultStyle="False"  Height="18"  Foreground="{DynamicResource ThemeButtonForeground}" DropDownClosed="CmbEditorSelection_DropDownClosed" MinWidth="80"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                         </DataGrid.Columns>
 
                         <!-- right click context menu -->

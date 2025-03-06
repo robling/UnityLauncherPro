@@ -1310,6 +1310,14 @@ namespace UnityLauncherPro
         {
             var proj = GetSelectedProject();
             var unitypath = Tools.GetUnityExePath(proj?.Version);
+            if (string.IsNullOrEmpty(unitypath))
+            {
+                var info = EditorInfo.FromString(proj?.Editor);
+                if (info != null && File.Exists(info.Path))
+                {
+                    unitypath = info.Path;
+                }
+            }
             Tools.LaunchExe(unitypath);
         }
 
@@ -4028,6 +4036,27 @@ namespace UnityLauncherPro
             Settings.Default.registerExplorerMenuAPK = (bool)chkRegisterInstallAPKMenu.IsChecked;
             Settings.Default.Save();
 
+        }
+
+        private void CmbEditorSelection_DropDownClosed(object sender, EventArgs e)
+        {
+            if (sender == null) return;
+            try
+            {
+                // get current platform, set it to selected project data
+                var cmb = (ComboBox)sender;
+                //Console.WriteLine(cmb.SelectedValue);
+                var p = GetSelectedProject();
+                if (p != null && cmb.SelectedValue != null)
+                {
+                    p.Editor = cmb.SelectedValue.ToString();
+                    File.WriteAllText(Path.Combine(p.Path, "LastLaunchEditor.txt"), p.Editor);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
 

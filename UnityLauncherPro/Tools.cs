@@ -184,6 +184,10 @@ namespace UnityLauncherPro
                 ver = ver.Replace("Installer", "").Trim();
             }
             var res = ver.Replace("(64-bit)", "").Replace("(32-bit)", "").Replace("Unity", "").Trim();
+            if (string.IsNullOrEmpty(res))
+            {
+                res = fvi.FileVersion;
+            }
             return res;
         }
 
@@ -271,6 +275,14 @@ namespace UnityLauncherPro
 
             // check if we have this unity version installed
             var unityExePath = GetUnityExePath(proj.Version);
+            if (unityExePath == null)
+            {
+                var info = EditorInfo.FromString(proj.Editor);
+                if (info != null && File.Exists(info.Path))
+                {
+                    unityExePath = info.Path;
+                }
+            }
             if (unityExePath == null)
             {
                 DisplayUpgradeDialog(proj, null, useInitScript);

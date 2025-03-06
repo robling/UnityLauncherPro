@@ -27,78 +27,14 @@ namespace UnityLauncherPro
                 // if folder exists
                 if (String.IsNullOrWhiteSpace(rootFolder) == true || Directory.Exists(rootFolder) == false) continue;
 
+                ParseEditor(results, rootFolder);
+
                 // get all folders
                 var directories = Directory.GetDirectories(rootFolder);
                 // parse all folders under root, and search for unity editor files
                 for (int i = 0, length = directories.Length; i < length; i++)
                 {
-                    var editorFolder = Path.Combine(directories[i], "Editor");
-                    if (Directory.Exists(editorFolder) == false)
-                    {
-                        // OPTIONAL scan for source code build output
-                        editorFolder = Path.Combine(directories[i], "build/WindowsEditor/x64/Release");
-                        if (Directory.Exists(editorFolder) == false)
-                        {
-                            // no unity editor root folder found, skip this folder
-                            continue;
-                        }
-                    }
-
-                    // check if uninstaller is there, sure sign of unity
-                    var uninstallExe = Path.Combine(editorFolder, "Uninstall.exe");
-                    var haveUninstaller = File.Exists(uninstallExe);
-
-                    var exePath = Path.Combine(editorFolder, "Unity.exe");
-                    if (File.Exists(exePath) == false) continue;
-
-                    // get full version number from uninstaller (or try exe, if no uninstaller)
-                    var version = Tools.GetFileVersionData(haveUninstaller ? uninstallExe : exePath);
-
-                    // we got new version to add
-                    var dataFolder = Path.Combine(editorFolder, "Data");
-                    DateTime? installDate = Tools.GetLastModifiedTime(dataFolder);
-                    UnityInstallation unity = new UnityInstallation();
-                    unity.Version = version;
-                    unity.VersionCode = Tools.VersionAsLong(version); // cached version code
-                    unity.Path = exePath;
-                    unity.Installed = installDate;
-                    unity.IsPreferred = (version == MainWindow.preferredVersion);
-                    unity.ProjectCount = GetProjectCountForUnityVersion(version);
-
-                    if (Tools.IsAlpha(version))
-                    {
-                        unity.ReleaseType = "Alpha";
-                    }
-                    else if (Tools.IsBeta(version))
-                    {
-                        unity.ReleaseType = "Beta";
-                    }
-                    else
-                        if (Tools.IsLTS(version))
-
-                    {
-                        unity.ReleaseType = "LTS";
-                    }
-                    else
-                    {
-                        unity.ReleaseType = ""; // cannot be null for UnitysFilter to work properly
-                    }
-
-                    // get platforms, NOTE if this is slow, do it later, or skip for commandline
-                    var platforms = GetPlatforms(dataFolder);
-                    // this is for editor tab, show list of all platforms in cell
-                    if (platforms != null) unity.PlatformsCombined = string.Join(", ", platforms);
-                    // this is for keeping array of platforms for platform combobox
-                    if (platforms != null) unity.Platforms = platforms;
-
-                    // add to list, if not there yet NOTE should notify that there are 2 same versions..? this might happen with preview builds..
-                    if (results.Contains(unity) == true)
-                    {
-                        Console.WriteLine("Warning: 2 same versions found for " + version);
-                        continue;
-                    }
-
-                    results.Add(unity);
+                    ParseEditor(results, directories[i]);
                 } // got folders
             } // all root folders
 
@@ -107,6 +43,76 @@ namespace UnityLauncherPro
 
             return results;
         } // scan()
+
+        private static void ParseEditor(List<UnityInstallation> results, string dir)
+        {
+            var editorFolder = Path.Combine(dir, "Editor");
+            if (Directory.Exists(editorFolder) == false)
+            {
+                // OPTIONAL scan for source code build output
+                editorFolder = Path.Combine(dir, "build/WindowsEditor/x64/Release");
+                if (Directory.Exists(editorFolder) == false)
+                {
+                    editorFolder = dir;
+                }
+            }
+
+            // check if uninstaller is there, sure sign of unity
+            var uninstallExe = Path.Combine(editorFolder, "Uninstall.exe");
+            var haveUninstaller = File.Exists(uninstallExe);
+
+            var exePath = Path.Combine(editorFolder, "Unity.exe");
+            if (File.Exists(exePath) == false) return;
+
+            // get full version number from uninstaller (or try exe, if no uninstaller)
+            var version = Tools.GetFileVersionData(haveUninstaller ? uninstallExe : exePath);
+
+            // we got new version to add
+            var dataFolder = Path.Combine(editorFolder, "Data");
+            DateTime? installDate = Tools.GetLastModifiedTime(dataFolder);
+            UnityInstallation unity = new UnityInstallation();
+            unity.Version = version;
+            unity.VersionCode = Tools.VersionAsLong(version); // cached version code
+            unity.Path = exePath;
+            unity.Installed = installDate;
+            unity.IsPreferred = (version == MainWindow.preferredVersion);
+            unity.ProjectCount = GetProjectCountForUnityVersion(version);
+
+            if (Tools.IsAlpha(version))
+            {
+                unity.ReleaseType = "Alpha";
+            }
+            else if (Tools.IsBeta(version))
+            {
+                unity.ReleaseType = "Beta";
+            }
+            else
+                if (Tools.IsLTS(version))
+
+            {
+                unity.ReleaseType = "LTS";
+            }
+            else
+            {
+                unity.ReleaseType = ""; // cannot be null for UnitysFilter to work properly
+            }
+
+            // get platforms, NOTE if this is slow, do it later, or skip for commandline
+            var platforms = GetPlatforms(dataFolder);
+            // this is for editor tab, show list of all platforms in cell
+            if (platforms != null) unity.PlatformsCombined = string.Join(", ", platforms);
+            // this is for keeping array of platforms for platform combobox
+            if (platforms != null) unity.Platforms = platforms;
+
+            // add to list, if not there yet NOTE should notify that there are 2 same versions..? this might happen with preview builds..
+            if (results.Contains(unity) == true)
+            {
+                Console.WriteLine("Warning: 2 same versions found for " + version);
+                return;
+            }
+
+            results.Add(unity);
+        }
 
         public static bool HasUnityInstallations(string path)
         {
